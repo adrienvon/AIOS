@@ -1,0 +1,18 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "cognitive-weaver-link-parser"
+version = "0.1.0"
+description = "Cognitive Weaver链接解析Agent - 解析Obsidian文档中的双链链接"
+authors = ["Cognitive Weaver Team"]
+readme = "README.md"
+homepage = "https://github.com/moxin-org/mofa"
+documentation = "https://github.com/moxin-org/mofa/blob/main/README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.scripts]
+cognitive-weaver-link-parser = "cognitive_weaver_link_parser.main:main"

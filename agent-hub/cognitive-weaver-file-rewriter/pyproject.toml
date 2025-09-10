@@ -1,0 +1,18 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "cognitive-weaver-file-rewriter"
+version = "0.1.0"
+description = "Cognitive Weaver文件重写Agent - 安全地修改文件添加关系链接"
+authors = ["Cognitive Weaver Team"]
+readme = "README.md"
+homepage = "https://github.com/moxin-org/mofa"
+documentation = "https://github.com/moxin-org/mofa/blob/main/README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.scripts]
+cognitive-weaver-file-rewriter = "cognitive_weaver_file_rewriter.main:main"

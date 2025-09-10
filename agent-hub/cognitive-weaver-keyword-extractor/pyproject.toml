@@ -1,0 +1,18 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "cognitive-weaver-keyword-extractor"
+version = "0.1.0"
+description = "Cognitive Weaver关键词提取Agent - 智能提取文档中的关键概念"
+authors = ["Cognitive Weaver Team"]
+readme = "README.md"
+homepage = "https://github.com/moxin-org/mofa"
+documentation = "https://github.com/moxin-org/mofa/blob/main/README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.scripts]
+cognitive-weaver-keyword-extractor = "cognitive_weaver_keyword_extractor.main:main"

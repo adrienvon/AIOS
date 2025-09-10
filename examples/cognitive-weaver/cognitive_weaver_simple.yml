@@ -1,0 +1,43 @@
+nodes:
+  # 简化版数据流 - 只包含核心功能
+  - id: terminal-input
+    build: pip install -e ../../node-hub/terminal-input
+    path: dynamic
+    outputs:
+      - data
+    inputs:
+      agent_response: ai-inference/deepseek_result
+
+  # 文件监控 - 监控文件变化
+  - id: file-monitor
+    build: pip install -e ../../agent-hub/cognitive-weaver-file-monitor
+    path: cognitive-weaver-file-monitor
+    outputs:
+      - file_changed
+    inputs:
+      vault_path: terminal-input/data
+    env:
+      IS_DATAFLOW_END: false
+
+  # 关键词提取 - 直接从文件内容提取关键词
+  - id: keyword-extractor
+    build: pip install -e ../../agent-hub/cognitive-weaver-keyword-extractor
+    path: cognitive-weaver-keyword-extractor
+    outputs:
+      - extracted_keywords
+    inputs:
+      parsed_data: file-monitor/file_changed
+    env:
+      IS_DATAFLOW_END: false
+
+  # AI推理 - 分析关系
+  - id: ai-inference
+    build: pip install -e ../../agent-hub/deepseek
+    path: deepseek
+    outputs:
+      - deepseek_result
+    inputs:
+      query: keyword-extractor/extracted_keywords
+    env:
+      IS_DATAFLOW_END: true
+      WRITE_LOG: true

@@ -1,0 +1,94 @@
+nodes:
+  # 输入节点 - 接收用户输入的vault路径
+  - id: terminal-input
+    build: pip install -e ../../node-hub/terminal-input
+    path: dynamic
+    outputs:
+      - data
+    inputs:
+      agent_response: file-rewriter/file_updated
+
+  # 文件监控节点 - 监控Obsidian vault文件变化
+  - id: file-monitor
+    build: pip install -e ../../agent-hub/cognitive-weaver-file-monitor
+    path: cognitive-weaver-file-monitor
+    outputs:
+      - file_changed
+    inputs:
+      vault_path: terminal-input/data
+    env:
+      IS_DATAFLOW_END: false
+      WRITE_LOG: true
+
+  # 链接解析节点 - 解析双链链接
+  - id: link-parser
+    build: pip install -e ../../agent-hub/cognitive-weaver-link-parser
+    path: cognitive-weaver-link-parser
+    outputs:
+      - parsed_links
+    inputs:
+      file_info: file-monitor/file_changed
+    env:
+      IS_DATAFLOW_END: false
+      WRITE_LOG: true
+
+  # 关键词提取节点 - 提取重要概念
+  - id: keyword-extractor
+    build: pip install -e ../../agent-hub/cognitive-weaver-keyword-extractor
+    path: cognitive-weaver-keyword-extractor
+    outputs:
+      - extracted_keywords
+    inputs:
+      parsed_data: link-parser/parsed_links
+    env:
+      IS_DATAFLOW_END: false
+      WRITE_LOG: true
+
+  # AI推理节点 - 使用deepseek进行关系推断
+  - id: ai-inference
+    build: pip install -e ../../agent-hub/deepseek
+    path: deepseek
+    outputs:
+      - deepseek_result
+    inputs:
+      query: keyword-extractor/extracted_keywords
+      serper_result: search-enhancement/search_result
+    env:
+      IS_DATAFLOW_END: false
+      WRITE_LOG: true
+
+  # 搜索增强节点 - 提供相关概念搜索（可选）
+  - id: search-enhancement
+    build: pip install -e ../../agent-hub/deep-search
+    path: deep-search
+    outputs:
+      - search_result
+    inputs:
+      user_query: keyword-extractor/extracted_keywords
+    env:
+      IS_DATAFLOW_END: false
+      WRITE_LOG: true
+
+  # 记忆存储节点 - 存储知识图谱信息
+  - id: memory-storage
+    build: pip install -e ../../agent-hub/llm-memory
+    path: llm-memory
+    outputs:
+      - memory_stored
+    inputs:
+      query: ai-inference/deepseek_result
+    env:
+      IS_DATAFLOW_END: false
+      WRITE_LOG: true
+
+  # 文件重写节点 - 添加关系链接到文件
+  - id: file-rewriter
+    build: pip install -e ../../agent-hub/cognitive-weaver-file-rewriter
+    path: cognitive-weaver-file-rewriter
+    outputs:
+      - file_updated
+    inputs:
+      ai_result: ai-inference/deepseek_result
+    env:
+      IS_DATAFLOW_END: true
+      WRITE_LOG: true
