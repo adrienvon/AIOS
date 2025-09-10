@@ -6,3 +6,6 @@ data/**
 ./**/.db
 ./**/.env
 *.
+# Python 虚拟环境和缓存文件
+venv/
+__pycache__/

@@ -22,12 +22,12 @@ def test_cognitive_weaver():
     
     for agent in required_agents:
         try:
-            result = subprocess.run([sys.executable, "-m", agent.replace("-", "_"), "--help"], 
-                                  capture_output=True, text=True, timeout=10)
-            if result.returncode == 0:
-                print(f"  ✅ {agent} - 已安装")
-            else:
-                print(f"  ❌ {agent} - 未安装或有问题")
+            # 直接尝试导入模块来检查是否安装
+            import_name = agent.replace("-", "_")
+            __import__(import_name)
+            print(f"  ✅ {agent} - 已安装")
+        except ImportError:
+            print(f"  ❌ {agent} - 未安装或有问题")
         except Exception as e:
             print(f"  ⚠️  {agent} - 检查失败: {e}")
     
