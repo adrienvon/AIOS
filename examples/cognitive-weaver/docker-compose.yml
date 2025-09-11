@@ -1,0 +1,107 @@
+# Docker Compose 配置 - Cognitive Weaver MOFA版本
+# 支持开发和生产环境的统一容器部署
+
+version: '3.8'
+
+services:
+  cognitive-weaver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cognitive-weaver-mofa
+    restart: unless-stopped
+    
+    # 环境变量
+    environment:
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DORA_LOG_LEVEL=INFO
+      - PYTHONPATH=/app
+    
+    # 环境变量文件
+    env_file:
+      - .env.secret
+    
+    # 端口映射
+    ports:
+      - "8000:8000"   # Web界面 (如果有)
+      - "8080:8080"   # API接口 (如果有)
+    
+    # 数据卷挂载
+    volumes:
+      # Obsidian vault目录 - 根据实际情况修改
+      - ${OBSIDIAN_VAULT_PATH:-./vault}:/app/vault:rw
+      # 知识图谱数据持久化
+      - cognitive-weaver-data:/app/data
+      # 日志持久化
+      - cognitive-weaver-logs:/app/logs
+      # 配置文件
+      - ./cognitive_weaver_dataflow.yml:/app/cognitive_weaver_dataflow.yml:ro
+      - ./cognitive_weaver_simple.yml:/app/cognitive_weaver_simple.yml:ro
+    
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "python3", "test_setup.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    # 网络
+    networks:
+      - cognitive-weaver-net
+    
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+  # 可选: Redis缓存 (用于提升性能)
+  redis:
+    image: redis:7-alpine
+    container_name: cognitive-weaver-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - cognitive-weaver-redis:/data
+    networks:
+      - cognitive-weaver-net
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # 可选: 监控服务
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: cognitive-weaver-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - cognitive-weaver-net
+    profiles:
+      - monitoring
+
+volumes:
+  cognitive-weaver-data:
+    driver: local
+  cognitive-weaver-logs:
+    driver: local
+  cognitive-weaver-redis:
+    driver: local
+  prometheus-data:
+    driver: local
+
+networks:
+  cognitive-weaver-net:
+    driver: bridge
